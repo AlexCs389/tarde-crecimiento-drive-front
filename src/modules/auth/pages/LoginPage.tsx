@@ -4,43 +4,27 @@ import { useAppDispatch } from '@store/hooks';
 import { loginStart, loginSuccess, loginFailure } from '@store/slices';
 import { authService } from '@shared/services';
 import { ROUTES } from '@core/constants';
-import { User } from '@core/types';
 
 export const LoginPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const handleLoginSuccess = async (credential: string, accessToken: string) => {
+  const handleLoginSuccess = async (credential: string, googleAccessToken: string) => {
     try {
       dispatch(loginStart());
       
-      authService.setAccessToken(accessToken);
+      // Enviar el access_token de Google al backend
+      const response = await authService.loginWithGoogle(googleAccessToken);
       
-      const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch user info');
-      }
-
-      const userInfo = await response.json();
+      // El authService ya guarda el usuario y el token JWT del backend
+      // Ahora solo actualizamos el estado de Redux
+      dispatch(loginSuccess(response.user));
       
-      const user: User = {
-        id: userInfo.id,
-        email: userInfo.email,
-        name: userInfo.name,
-        picture: userInfo.picture,
-      };
-
-      authService.saveUser(user);
-      dispatch(loginSuccess(user));
+      // Redirigir al home
       navigate(ROUTES.HOME);
     } catch (error) {
       console.error('Error during login:', error);
-      dispatch(loginFailure('Error al iniciar sesión'));
+      dispatch(loginFailure('Error al iniciar sesión con Google'));
     }
   };
 

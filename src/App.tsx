@@ -6,6 +6,17 @@ import { AppRouter } from '@router';
 import { env } from '@config';
 import { authService } from '@shared/services';
 import { setUser } from '@store/slices';
+import { useTokenRefresh } from '@shared/hooks';
+
+function AppContent() {
+  // Activar el refresh automático de token
+  useTokenRefresh({ 
+    enabled: true, 
+    refreshBeforeExpiry: 300 // 5 minutos antes de expirar
+  });
+
+  return <AppRouter />;
+}
 
 function App() {
   useEffect(() => {
@@ -18,7 +29,7 @@ function App() {
   return (
     <GoogleOAuthProvider clientId={env.googleClientId}>
       <Provider store={store}>
-        <AppRouter />
+        <AppContent />
       </Provider>
     </GoogleOAuthProvider>
   );

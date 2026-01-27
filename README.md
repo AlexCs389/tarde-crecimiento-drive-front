@@ -86,18 +86,75 @@ npm install
 touch .env.local
 ```
 
-2. Agrega tu Google Client ID:
+2. Agrega las siguientes variables:
 
 ```env
 VITE_GOOGLE_CLIENT_ID=tu_google_client_id_aqui.apps.googleusercontent.com
+VITE_API_BASE_URL=http://localhost:5000
 ```
 
 **Ejemplo:**
 ```env
 VITE_GOOGLE_CLIENT_ID=123456789-abc123def456.apps.googleusercontent.com
+VITE_API_BASE_URL=http://localhost:5000
 ```
 
 ⚠️ **Importante**: El archivo `.env.local` está en `.gitignore` y no se subirá al repositorio.
+
+### 3.1. Configurar el Backend
+
+Esta aplicación requiere un backend para gestionar la autenticación. Asegúrate de que el backend esté corriendo en `http://localhost:5000` (o la URL configurada en `VITE_API_BASE_URL`).
+
+El backend debe tener el siguiente endpoint:
+
+**POST** `/auth/google/login`
+
+**Request Body:**
+```json
+{
+  "access_token": "google_access_token_here"
+}
+```
+
+**Response:**
+```json
+{
+  "access_token": "jwt_token_from_backend",
+  "refresh_token": "refresh_token_optional",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "user": {
+    "id": "user_id",
+    "email": "user@example.com",
+    "name": "User Name",
+    "picture": "https://...",
+    "googleId": "google_user_id"
+  }
+}
+```
+
+El backend también debe implementar el endpoint de refresh:
+
+**POST** `/auth/refresh`
+
+**Headers:**
+```
+Authorization: Bearer {refresh_token}
+```
+
+**Response:**
+```json
+{
+  "access_token": "new_jwt_token",
+  "refresh_token": "new_refresh_token_optional",
+  "token_type": "Bearer",
+  "expires_in": 3600
+}
+```
+
+📖 **Documentación detallada:**
+- [Flujo de autenticación](docs/AUTH_FLOW.md)
+- [Sistema de refresh token](docs/TOKEN_REFRESH.md)
 
 ### 4. Ejecutar la Aplicación
 
@@ -119,6 +176,13 @@ npm run lint     # Ejecuta el linter
 ## Características
 
 - ✅ Autenticación con Google OAuth
+- ✅ Integración con backend para gestión de sesiones JWT
+- ✅ **Sistema de refresh token automático**
+  - Refresh preventivo antes de expiración
+  - Interceptor automático para errores 401
+  - Prevención de múltiples refreshes simultáneos
+- ✅ Servicio HTTP reutilizable para consumir APIs
+- ✅ HttpInterceptorService con manejo automático de tokens
 - ✅ Rutas protegidas
 - ✅ Persistencia de sesión
 - ✅ Estado global con Redux
@@ -172,10 +236,17 @@ Cada carpeta incluye archivos `index.ts` para exportaciones limpias.
 - Verifica que `http://localhost:5173` esté agregado en los **Orígenes de JavaScript autorizados** en Google Cloud Console
 - Asegúrate de que el puerto coincida (por defecto Vite usa 5173)
 
+### Error: "Failed to fetch" o "Network Error"
+- Verifica que el backend esté corriendo en la URL configurada (`http://localhost:5000`)
+- Revisa que el backend tenga configurado CORS correctamente para permitir peticiones desde `http://localhost:5173`
+- Verifica la consola del navegador para ver errores específicos de red
+
 ### La autenticación no funciona
 - Verifica que Google+ API esté habilitada en tu proyecto de Google Cloud
+- Asegúrate de que el backend esté corriendo y responda correctamente
 - Revisa la consola del navegador para ver errores específicos
 - Asegúrate de que el archivo `.env.local` exista y tenga el formato correcto
+- Verifica que el endpoint `/auth/google/login` del backend esté funcionando correctamente
 
 ### Cambiar el puerto de desarrollo
 Si necesitas usar un puerto diferente:
