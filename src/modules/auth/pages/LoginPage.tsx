@@ -9,7 +9,7 @@ export const LoginPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const handleLoginSuccess = async (credential: string, googleAccessToken: string) => {
+  const handleLoginSuccess = async (_credential: string, googleAccessToken: string) => {
     try {
       dispatch(loginStart());
       

@@ -1,4 +1,4 @@
-import { User, GoogleLoginResponse, RefreshTokenResponse } from '@core/types';
+import type { User, GoogleLoginResponse, RefreshTokenResponse } from '@core/types';
 
 export interface IAuthService {
   loginWithGoogle(googleAccessToken: string): Promise<GoogleLoginResponse>;

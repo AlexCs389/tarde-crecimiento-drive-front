@@ -8,7 +8,6 @@
  * - Usa httpService para endpoints públicos o cuando no necesites interceptores
  */
 
-import { httpService } from './http.service';
 import { httpInterceptorService } from './http-interceptor.service';
 import { authService } from './auth.service';
 

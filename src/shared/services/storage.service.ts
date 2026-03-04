@@ -1,4 +1,4 @@
-import { IStorageService } from '@core/interfaces';
+import type { IStorageService } from '@core/interfaces';
 
 class StorageService implements IStorageService {
   private storage: Storage;

@@ -98,7 +98,7 @@ class HttpService {
     });
   }
 
-  setAuthToken(token: string): void {
+  setAuthToken(_token: string): void {
     // Este método puede ser usado para configurar el token en futuras peticiones
     // si necesitas un interceptor global
   }

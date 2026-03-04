@@ -12,7 +12,7 @@ interface UseTokenRefreshOptions {
  */
 export const useTokenRefresh = (options: UseTokenRefreshOptions = {}) => {
   const { enabled = true, refreshBeforeExpiry = 300 } = options; // 5 minutos por defecto
-  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const refreshTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!enabled) return;
