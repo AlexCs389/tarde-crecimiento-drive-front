@@ -26,11 +26,14 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
+      "@config": ["./src/config"],
       "@config/*": ["./src/config/*"],
       "@core/*": ["./src/core/*"],
       "@modules/*": ["./src/modules/*"],
+      "@router": ["./src/router"],
       "@router/*": ["./src/router/*"],
       "@shared/*": ["./src/shared/*"],
+      "@store": ["./src/store"],
       "@store/*": ["./src/store/*"]
     }
   },
