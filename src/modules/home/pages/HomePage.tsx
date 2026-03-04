@@ -1,19 +1,46 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { logout } from '@store/slices';
-import { authService } from '@shared/services';
-import { Header } from '@shared/components';
+import { authService, driveService } from '@shared/services';
+import { Header, VideoCard } from '@shared/components';
 import { ROUTES } from '@core/constants';
+import type { DriveFile } from '@core/types';
 
 export const HomePage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
+  const hasFetchedFiles = useRef(false);
+  const [files, setFiles] = useState<DriveFile[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const accessToken = authService.getAccessToken();
-    console.log('Google Access Token:', accessToken);
+    const fetchDriveFiles = async () => {
+      if (hasFetchedFiles.current) return;
+      hasFetchedFiles.current = true;
+
+      try {
+        const response = await driveService.getFiles();
+        
+        let filesData: DriveFile[] = [];
+        if (Array.isArray(response)) {
+          filesData = response;
+        } else if (response.data && Array.isArray(response.data)) {
+          filesData = response.data;
+        } else if (response.files && Array.isArray(response.files)) {
+          filesData = response.files;
+        }
+        
+        setFiles(filesData);
+      } catch (error) {
+        console.error('Error al cargar archivos del drive:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDriveFiles();
   }, []);
 
   const handleLogout = async () => {
@@ -27,25 +54,48 @@ export const HomePage = () => {
       <Header user={user} onLogout={handleLogout} />
 
       <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8'>
-        <div className='bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8'>
-          <div className='flex flex-col sm:flex-row items-center sm:items-center gap-4 mb-4 sm:mb-6'>
-            <div className='w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-2xl sm:text-3xl font-bold shadow-lg flex-shrink-0'>
-              {user?.name.charAt(0).toUpperCase()}
-            </div>
-            <div className='text-center sm:text-left'>
-              <h2 className='text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 break-words'>
-                ¡Bienvenido, {user?.name}!
-              </h2>
-              <p className='text-sm sm:text-base text-gray-500 mt-1'>Es genial tenerte de vuelta</p>
-            </div>
+        <div className='mb-6'>
+          <h1 className='text-2xl sm:text-3xl font-bold text-gray-800 mb-2'>
+            Tardes de Crecimiento
+          </h1>
+          <p className='text-gray-600'>
+            {loading ? 'Cargando videos...' : `${files.length} video${files.length !== 1 ? 's' : ''} disponible${files.length !== 1 ? 's' : ''}`}
+          </p>
+        </div>
+
+        {loading ? (
+          <div className='flex justify-center items-center h-64'>
+            <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600'></div>
           </div>
-          
-          <div className='border-t border-gray-200 pt-4 sm:pt-6'>
-            <p className='text-sm sm:text-base text-gray-600 leading-relaxed'>
-              Esta es tu página de inicio. Aquí puedes agregar el contenido de tu aplicación.
+        ) : files.length === 0 ? (
+          <div className='bg-white rounded-xl shadow-lg p-8 text-center'>
+            <svg
+              className='w-16 h-16 text-gray-400 mx-auto mb-4'
+              fill='none'
+              stroke='currentColor'
+              viewBox='0 0 24 24'
+            >
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth={2}
+                d='M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z'
+              />
+            </svg>
+            <h3 className='text-xl font-semibold text-gray-700 mb-2'>
+              No hay videos disponibles
+            </h3>
+            <p className='text-gray-500'>
+              Los videos aparecerán aquí cuando estén disponibles.
             </p>
           </div>
-        </div>
+        ) : (
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6'>
+            {files.map((file) => (
+              <VideoCard key={file.id} file={file} />
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );
